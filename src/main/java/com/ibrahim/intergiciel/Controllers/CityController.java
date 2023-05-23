@@ -1,6 +1,5 @@
 package com.ibrahim.intergiciel.Controllers;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,58 +20,31 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.eclipse.rdf4j.model.Value;
 
-
-
 @Controller
-public class CountryController {
-
+public class CityController {
+    
     private final RepositoryConnection repositoryConnection;
 
     @Autowired
-    public CountryController(RepositoryConnection repositoryConnection) {
+    public CityController(RepositoryConnection repositoryConnection) {
         this.repositoryConnection = repositoryConnection;
     }
-    @GetMapping("/country")
-    public String getCountryPage() {
-        return "country";
-    }
-
-    @GetMapping("/countries")
-    public ModelAndView getCountries() throws RepositoryException, MalformedQueryException, QueryEvaluationException {
-            List<String> countries = new ArrayList();
     
-            String query = "SELECT DISTINCT ?country ?capital WHERE { "
-                         + "    ?country rdf:type dbo:Country . "
-                         + "    ?country dbo:capital ?capital . "
-                         + "} LIMIT 193";
-    
-            TupleQuery tupleQuery = repositoryConnection.prepareTupleQuery(query);
-            TupleQueryResult result = tupleQuery.evaluate();
-    
-            while (result.hasNext()) {
-                BindingSet bindingSet = result.next();
-                Value country = bindingSet.getValue("country");
-                Value capital = bindingSet.getValue("capital");
-    
-                countries.add(country.stringValue() + " - " + capital.stringValue());
-            }
-    
-            result.close();
-            ModelAndView modelAndView = new ModelAndView("countries");
-            modelAndView.addObject("countries", countries);
-            return modelAndView;
-        }
-
-        @PostMapping("/country")
-        public ModelAndView getCountryDetails(@RequestParam("countryName") String countryName) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
-            ModelAndView modelAndView = new ModelAndView("country");
         
+    @GetMapping("/city")
+    public String getCityPage() {
+        return "city";
+    }
+        @PostMapping("/city")
+        public ModelAndView getcityDetails(@RequestParam("cityName") String cityName) throws RepositoryException, MalformedQueryException, QueryEvaluationException {
+            ModelAndView modelAndView = new ModelAndView("city");
+            
             String queryString = "PREFIX dbo: <http://dbpedia.org/ontology/> \n" +
                                  "PREFIX dbp: <http://dbpedia.org/property/> \n" +
                                  "SELECT DISTINCT * WHERE { \n" +
-                                 "?country a dbo:Country ; \n" +
-                                 "        rdfs:label \"" + countryName + "\"@en ; \n" +
-                                 "        ?property ?value . \n" +
+                                 "?city a dbo:City ; \n" +
+                                 "      rdfs:label \"" + cityName + "\"@en ; \n" +
+                                 "      ?property ?value . \n" +
                                  "FILTER((LANG(?value)) = \"\" || LANGMATCHES(LANG(?value), \"en\")) \n" +
                                  "} \n" +
                                  "ORDER BY ?property";
@@ -80,7 +52,7 @@ public class CountryController {
             try {
                 TupleQuery query = repositoryConnection.prepareTupleQuery(queryString);
                 TupleQueryResult result = query.evaluate();
-                List<Map<String, String>> countryStatistics = new ArrayList<>();
+                List<Map<String, String>> cityStatistics = new ArrayList<>();
                 while (result.hasNext()) {
                     BindingSet bindingSet = result.next();
                     Map<String, String> statistics = new HashMap<>();
@@ -88,16 +60,15 @@ public class CountryController {
                         Value value = bindingSet.getValue(bindingName);
                         statistics.put(bindingName, value.stringValue());
                     }
-                    countryStatistics.add(statistics);
+                    cityStatistics.add(statistics);
                 }
-                List<String> countryDetails = new ArrayList<>();
-                for (Map<String, String> statistics : countryStatistics) {
+                List<String> cityDetails = new ArrayList<>();
+                for (Map<String, String> statistics : cityStatistics) {
                     String detail = statistics.get("property") + "-" + statistics.get("value");
-                    countryDetails.add(detail);
-
+                    cityDetails.add(detail);
                 }
-                modelAndView.addObject("countryDetails", countryDetails);
-                modelAndView.setViewName("country");
+                modelAndView.addObject("cityDetails", cityDetails);
+                modelAndView.setViewName("city");
             } catch (QueryEvaluationException e) {
                 e.printStackTrace();
             }
@@ -105,9 +76,5 @@ public class CountryController {
             return modelAndView;
         }
         
-       
 
 }
-    
-
-
